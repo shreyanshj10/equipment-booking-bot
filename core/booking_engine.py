@@ -45,7 +45,14 @@ def _fmt_time(dt: datetime) -> str:
 
 def _fmt_date(dt: datetime) -> str:
     """Return a date string like '15 March 2025'."""
-    return dt.strftime("%-d %B %Y")
+    # Use dt.day (an int) instead of the glibc-only "%-d" directive, which
+    # raises "Invalid format string" on Windows.
+    return f"{dt.day} {dt.strftime('%B %Y')}"
+
+
+def _fmt_day_month(dt: datetime) -> str:
+    """Return a short date string like '5 Jun'."""
+    return f"{dt.day} {dt.strftime('%b')}"
 
 
 # ─── Public API ───────────────────────────────────────────────────────────────
@@ -303,7 +310,7 @@ def get_bookings(club_name: str) -> str:
 
             lines = [f"📋 Active Bookings for {club_name}:", "─────────────────────"]
             for b in bookings:
-                date_label = b.start_time.strftime("%-d %b")
+                date_label = _fmt_day_month(b.start_time)
                 lines.append(
                     f"{b.equipment.name} x{b.quantity} | {date_label} | "
                     f"{_fmt_time(b.start_time)}–{_fmt_time(b.end_time)} | {b.booked_by}"
@@ -339,7 +346,7 @@ def get_booking_history(club_name: str) -> str:
 
             lines = [f"📜 Booking History for {club_name}:", "─────────────────────"]
             for b in bookings:
-                date_label = b.start_time.strftime("%-d %b")
+                date_label = _fmt_day_month(b.start_time)
                 status_icon = "🔄" if b.status == "returned" else "❌"
                 lines.append(
                     f"{status_icon} {b.equipment.name} x{b.quantity} | {date_label} | "
@@ -452,7 +459,7 @@ def get_active_bookings() -> str:
 
             lines = ["📋 All Active Bookings:", "─────────────────────"]
             for b in bookings:
-                date_label = b.start_time.strftime("%-d %b")
+                date_label = _fmt_day_month(b.start_time)
                 lines.append(
                     f"{b.equipment.name} x{b.quantity} | {b.club_name} | "
                     f"{date_label} | {_fmt_time(b.start_time)}–{_fmt_time(b.end_time)} | {b.booked_by}"
@@ -485,7 +492,7 @@ def get_all_booking_history() -> str:
 
             lines = ["📜 All Booking History:", "─────────────────────"]
             for b in bookings:
-                date_label = b.start_time.strftime("%-d %b")
+                date_label = _fmt_day_month(b.start_time)
                 status_icon = "🔄" if b.status == "returned" else "❌"
                 lines.append(
                     f"{status_icon} {b.equipment.name} x{b.quantity} | {b.club_name} | "
